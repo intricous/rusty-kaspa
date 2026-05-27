@@ -41,6 +41,9 @@ pub trait ConsensusFactory: Sync + Send {
     /// If the node is not configured as archival -- delete inactive consensus entries and their databases  
     fn delete_inactive_consensus_entries(&self);
 
+    /// If the node is not configured as a storage node -- delete unused storage data
+    fn delete_unused_data_store(&self);
+
     /// Delete the staging consensus entry and its database (this is done even if the node is archival
     /// since staging reflects non-final data)
     fn delete_staging_entry(&self);
@@ -63,6 +66,10 @@ impl ConsensusFactory for MockFactory {
     }
 
     fn delete_inactive_consensus_entries(&self) {
+        unimplemented!()
+    }
+
+    fn delete_unused_data_store(&self) {
         unimplemented!()
     }
 
@@ -166,6 +173,10 @@ impl ConsensusManager {
 
     pub fn delete_inactive_consensus_entries(&self) {
         self.factory.delete_inactive_consensus_entries();
+    }
+
+    pub fn delete_unused_data_store(&self) {
+        self.factory.delete_unused_data_store();
     }
 
     pub fn delete_staging_entry(&self) {

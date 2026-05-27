@@ -35,6 +35,12 @@ pub struct Config {
     /// Indicates whether this node is an archival node
     pub is_archival: bool,
 
+    /// Indicates whether this node is a storage node
+    pub is_storage_node: bool,
+
+    /// Indicates whether this node is a compute node
+    pub is_compute_node: bool,
+
     /// Enable various sanity checks which might be compute-intensive (mostly performed during pruning)
     pub enable_sanity_checks: bool,
 
@@ -84,6 +90,8 @@ impl Config {
             perf,
             process_genesis: true,
             is_archival: false,
+            is_storage_node: false,
+            is_compute_node: false,
             enable_sanity_checks: false,
             utxoindex: false,
             unsafe_rpc: false,
@@ -163,6 +171,16 @@ impl ConfigBuilder {
 
     pub fn set_archival(mut self) -> Self {
         self.config.is_archival = true;
+        self
+    }
+
+    pub fn set_storage_node(mut self) -> Self {
+        self.config.is_storage_node = true;
+        self
+    }
+
+    pub fn set_compute_node(mut self) -> Self {
+        self.config.is_compute_node = true;
         self
     }
 

@@ -310,6 +310,10 @@ impl ConsensusFactory for TestConsensusFactory {
         unimplemented!()
     }
 
+    fn delete_unused_data_store(&self) {
+        unimplemented!()
+    }
+
     fn delete_staging_entry(&self) {
         unimplemented!()
     }

@@ -540,6 +540,13 @@ Do you confirm? (y/n)";
         );
     }
 
+    if !args.storage && MultiConsensusManagementStore::new(meta_db.clone()).is_storage_node().unwrap() {
+        get_user_approval_or_exit(
+            "--storage is set to false although the node was previously used for general storage. Proceeding may delete stored data. Do you confirm? (y/n)",
+            args.yes,
+        );
+    }
+
     let connect_peers = args.connect_peers.iter().map(|x| x.normalize(config.default_p2p_port())).collect::<Vec<_>>();
     let add_peers = args.add_peers.iter().map(|x| x.normalize(config.default_p2p_port())).collect();
     let p2p_server_addr = args.listen.unwrap_or(ContextualNetAddress::unspecified()).normalize(config.default_p2p_port());

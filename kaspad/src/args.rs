@@ -69,6 +69,8 @@ pub struct Args {
     pub devnet: bool,
     pub simnet: bool,
     pub archival: bool,
+    pub storage: bool,
+    pub compute: bool,
     pub sanity: bool,
     pub yes: bool,
     #[serde_as(as = "Option<DisplayFromStr>")]
@@ -121,6 +123,8 @@ impl Default for Args {
             devnet: false,
             simnet: false,
             archival: false,
+            storage: false,
+            compute: false,
             sanity: false,
             logdir: None,
             rpclisten: None,
@@ -164,6 +168,8 @@ impl Args {
         config.enable_unsynced_mining = self.enable_unsynced_mining;
         config.enable_mainnet_mining = self.enable_mainnet_mining;
         config.is_archival = self.archival;
+        config.is_storage_node = self.storage;
+        config.is_compute_node = self.compute;
         // TODO: change to `config.enable_sanity_checks = self.sanity` when we reach stable versions
         config.enable_sanity_checks = true;
         config.user_agent_comments.clone_from(&self.user_agent_comments);
@@ -359,6 +365,8 @@ Setting to 0 prevents the preallocation and sets the maximum to {}, leading to 0
         .arg(arg!(--devnet "Use the development test network").env("KASPAD_DEVNET"))
         .arg(arg!(--simnet "Use the simulation test network").env("KASPAD_SIMNET"))
         .arg(arg!(--archival "Run as an archival node: avoids deleting old block data when moving the pruning point (Warning: heavy disk usage)").env("KASPAD_ARCHIVAL"))
+        .arg(arg!(--storage "Run as an storage node: (Warning: heavy disk usage)").env("KASPAD_STORAGE"))
+        .arg(arg!(--compute "Run as an compute node").env("KASPAD_COMPUTE"))
         .arg(arg!(--sanity "Enable various sanity checks which might be compute-intensive (mostly performed during pruning)").env("KASPAD_SANITY"))
         .arg(arg!(--yes "Answer yes to all interactive console questions").env("KASPAD_NONINTERACTIVE"))
         .arg(
@@ -508,6 +516,8 @@ impl Args {
             devnet: arg_match_unwrap_or::<bool>(&m, "devnet", defaults.devnet),
             simnet: arg_match_unwrap_or::<bool>(&m, "simnet", defaults.simnet),
             archival: arg_match_unwrap_or::<bool>(&m, "archival", defaults.archival),
+            storage: arg_match_unwrap_or::<bool>(&m, "storage", defaults.storage),
+            compute: arg_match_unwrap_or::<bool>(&m, "compute", defaults.compute),
             sanity: arg_match_unwrap_or::<bool>(&m, "sanity", defaults.sanity),
             yes: arg_match_unwrap_or::<bool>(&m, "yes", defaults.yes),
             user_agent_comments: arg_match_many_unwrap_or::<String>(&m, "user_agent_comments", defaults.user_agent_comments),
@@ -628,6 +638,8 @@ fn arg_match_many_unwrap_or<T: Clone + Send + Sync + 'static>(m: &clap::ArgMatch
       --utxoindex                           Enable the UTXO index
       --archival                            Run as an archival node: don't delete old block data when moving the
                                             pruning point (Warning: heavy disk usage)'
+      --storage                             Run as a general data storage node
+      --compute                             Run as a general computing node
       --protocol-version=                   Use non default p2p protocol version (default: 5)
       --enable-unsynced-mining              Allow the node to accept blocks from RPC while not synced
                                             (required when initiating a new network from genesis)

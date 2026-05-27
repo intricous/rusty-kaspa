@@ -54,6 +54,10 @@ pub struct MultiConsensusMetadata {
     max_key_used: u64,
     /// Memorizes whether this node was recently an archive node
     is_archival_node: bool,
+    /// Memorizes whether this node was recently a storage node
+    is_storage_node: bool,
+    /// Memorizes whether this node was recently a compute node
+    is_compute_node: bool,
     /// General serialized properties to be used cross DB versions
     props: HashMap<Vec<u8>, Vec<u8>>,
     /// The DB scheme version
@@ -68,6 +72,8 @@ impl Default for MultiConsensusMetadata {
             staging_consensus_key: Default::default(),
             max_key_used: Default::default(),
             is_archival_node: Default::default(),
+            is_storage_node: Default::default(),
+            is_compute_node: Default::default(),
             props: Default::default(),
             version: LATEST_DB_VERSION,
         }
@@ -220,6 +226,40 @@ impl MultiConsensusManagementStore {
         }
     }
 
+    pub fn is_storage_node(&self) -> StoreResult<bool> {
+        match self.metadata.read() {
+            Ok(data) => Ok(data.is_storage_node),
+            Err(StoreError::KeyNotFound(_)) => Ok(false),
+            Err(err) => Err(err),
+        }
+    }
+
+    pub fn set_is_storage_node(&mut self, is_storage_node: bool) {
+        let mut metadata = self.metadata.read().unwrap();
+        if metadata.is_storage_node != is_storage_node {
+            metadata.is_storage_node = is_storage_node;
+            let mut batch = WriteBatch::default();
+            self.metadata.write(BatchDbWriter::new(&mut batch), &metadata).unwrap();
+        }
+    }
+
+    pub fn is_compute_node(&self) -> StoreResult<bool> {
+        match self.metadata.read() {
+            Ok(data) => Ok(data.is_compute_node),
+            Err(StoreError::KeyNotFound(_)) => Ok(false),
+            Err(err) => Err(err),
+        }
+    }
+
+    pub fn set_is_compute_node(&mut self, is_compute_node: bool) {
+        let mut metadata = self.metadata.read().unwrap();
+        if metadata.is_compute_node != is_compute_node {
+            metadata.is_compute_node = is_compute_node;
+            let mut batch = WriteBatch::default();
+            self.metadata.write(BatchDbWriter::new(&mut batch), &metadata).unwrap();
+        }
+    }
+
     /// Returns the current version of this database
     pub fn version(&self) -> StoreResult<u32> {
         match self.metadata.read() {
@@ -284,6 +324,8 @@ impl Factory {
         config.process_genesis = false;
         let management_store = Arc::new(RwLock::new(MultiConsensusManagementStore::new(management_db)));
         management_store.write().set_is_archival_node(config.is_archival);
+        management_store.write().set_is_storage_node(config.is_storage_node);
+        management_store.write().set_is_compute_node(config.is_compute_node);
         let factory = Self {
             management_store,
             config,
@@ -403,6 +445,14 @@ impl ConsensusFactory for Factory {
             return;
         }
 
+        if self.config.is_storage_node {
+            return;
+        }
+
+        if self.config.is_compute_node {
+            return;
+        }
+
         let mut write_guard = self.management_store.write();
         let entries_to_delete = write_guard
             .iterate_inactive_entries()
@@ -426,6 +476,10 @@ impl ConsensusFactory for Factory {
         for entry in entries_to_delete {
             write_guard.delete_entry(entry).unwrap();
         }
+    }
+
+    fn delete_unused_data_store(&self) {
+        unimplemented!()
     }
 
     fn delete_staging_entry(&self) {
